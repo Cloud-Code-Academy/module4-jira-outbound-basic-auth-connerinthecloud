@@ -2,8 +2,8 @@
  * Wrapper classes for Jira entities (Project and Issue)
  */
 public class JiraWrapper {
-	private static final String LEAD_ACCOUNT_ID = '1337:0123456789-bfa0-40f4-bd28-25ae65c3e5b1';
-	private static final String PROJECT_TEMPLATE_KEY = 'com.pyxis.greenhopper.jira:basic-software-development-template';
+	private static final String LEAD_ACCOUNT_ID =  Jira_Project_Settings__mdt.getInstance('Jira_Data').Lead_Account_Id__c;
+	private static final String PROJECT_TEMPLATE_KEY = Jira_Project_Settings__mdt.getInstance('Jira_Data').Project_Template_Key__c;
 
 	/**
 	 * Wrapper for Jira Project
@@ -65,8 +65,21 @@ public class JiraWrapper {
 		 * - Example:
 		 */
 		public Map<String, Object> generateIssuePayloadMap() {
-			// Your implementation goes here
-			return null;
+
+			Map<String, String> issueTypeMap = new Map<String, String>();
+			Map<String, String> projectMap = new Map<String, String>();
+			projectMap.put('key', this.projectKey);
+
+			Map<String, Object> fieldMap = new Map<String, Object>();
+			fieldMap.put('project', projectMap);
+			fieldMap.put('summary', this.summary);
+			fieldMap.put('description', formatDescription(this.description));
+			fieldMap.put('issuetype', issueTypeMap);
+
+			Map<String, Object> issuePayload = new Map<String, Object>();
+			issuePayload.put('fields', fieldMap);
+
+			return issuePayload;
 		}
 
 		/**
@@ -82,10 +95,10 @@ public class JiraWrapper {
 		 *     "description": {
 		 *       "type": "doc",
 		 *       "version": 1,
-		 *       "content": [
+		 *       "content": [ 
 		 *         {
 		 *           "type": "paragraph",
-		 *           "content": [
+		 *           "content": [ 
 		 *             {
 		 *               "type": "text",
 		 *               "text": "Order entry fails when selecting supplier."
@@ -98,7 +111,24 @@ public class JiraWrapper {
 		 */
 		private Map<String, Object> formatDescription(String descText) {
 			// Your implementation goes here
-			return null;
+			List<Map<String, String>> textContentList = new List<Map<String,String>>();
+			Map<String, String> textContentMap = new Map<String, String>();
+			textContentMap.put('type', 'text');
+			textContentMap.put('text', descText);
+			textContentList.add(textContentMap);
+
+			List<Map<String, Object>> contentList = new List<Map<String, Object>>();
+			Map<String, Object> paragraphMap = new Map<String,Object>();
+			paragraphMap.put('type', 'paragraph');
+			paragraphMap.put('content', textContentList);
+			contentList.add(paragraphMap);
+
+			Map<String, Object> descriptionMap = new Map<String, Object>();
+			descriptionMap.put('type', 'doc');
+			descriptionMap.put('version', 1);
+			descriptionMap.put('content', contentList);
+
+			return descriptionMap;
 		}
 	}
 }

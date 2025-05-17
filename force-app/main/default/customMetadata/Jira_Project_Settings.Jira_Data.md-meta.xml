@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <label>Jira Data</label>
+    <protected>false</protected>
+    <values>
+        <field>Lead_Account_Id__c</field>
+        <value xsi:type="xsd:string">557058:1fa83b86-d1a6-4da6-b745-62f1c19696c2</value>
+    </values>
+    <values>
+        <field>Project_Template_Key__c</field>
+        <value xsi:type="xsd:string">com.pyxis.greenhopper.jira:basic-software-development-template</value>
+    </values>
+</CustomMetadata>

@@ -2,7 +2,6 @@
  * Queueable class to make asynchronous callouts to Jira API
  */
 public class JiraCalloutQueueable implements Queueable, Database.AllowsCallouts {
-	// Simple constants instead of enum
 	public static final String TYPE_PROJECT = 'PROJECT';
 	public static final String TYPE_ISSUE = 'ISSUE';
 
@@ -64,6 +63,30 @@ public class JiraCalloutQueueable implements Queueable, Database.AllowsCallouts 
 	 */
 	public void execute(QueueableContext context) {
 		// Your implementation goes here
+		switch on calloutType {
+			when 'PROJECT' {
+				String projectid = JiraAPIService.createProject(projectWrapper);
+				if (projectid != null) {
+					updateJiraProject(projectId);
+				} else {
+					Logger.info('Falied to create a Jira project. Invalid projectId');
+					Logger.saveLog();
+				}
+			}
+			when 'ISSUE' {
+				String issueKey = JiraAPIService.createIssue(issueWrapper);
+				if (issueKey != null) {
+					updateJiraIssue(issueKey);
+				} else {
+					Logger.info('Faled to create a Jira issue. Invalid issueKey');
+					Logger.saveLog();
+				}
+			}
+			when else {
+				Logger.error('Invalid callout type');
+				Logger.saveLog();
+			}
+		}
 	}
 
 	/**
@@ -74,6 +97,26 @@ public class JiraCalloutQueueable implements Queueable, Database.AllowsCallouts 
 	 */
 	private void updateJiraProject(String jiraProjectId) {
 		// Your implementation goes here
+		Jira_Project__c projectToUpdate = [
+			SELECT Id, Project_ID__c
+			FROM Jira_Project__c
+			WHERE Id = :this.recordId
+		];
+
+		projectToUpdate.Project_ID__c = jiraProjectId;
+
+		Database.SaveResult ur = Database.update(projectToUpdate);
+		if (ur.isSuccess()) {
+			Logger.info('Project ' + ur.id + ' updated successfully');
+			Logger.saveLog();
+		} else {
+			for (Database.Error error : ur.getErrors()) {
+				String errorMessage = 'There was an error updating the following project: ' + ur.id;
+				errorMessage += 'Status code: ' + error.getStatusCode() + ' message: ' + error.getMessage();
+				Logger.error(errorMessage);
+				Logger.saveLog();
+			}
+		}
 	}
 
 	/**
@@ -85,5 +128,26 @@ public class JiraCalloutQueueable implements Queueable, Database.AllowsCallouts 
 	 */
 	private void updateJiraIssue(String jiraIssueKey) {
 		// Your implementation goes here
+		Jira_Issue__c issueToUpdate = [
+			SELECT Id, Issue_Key__c, Last_Updated__c
+			FROM Jira_Issue__c
+			WHERE Id = :this.recordId
+		];
+
+		issueToUpdate.Issue_Key__c = jiraIssueKey;
+		issueToUpdate.Last_Updated__c = Datetime.now();
+
+		Database.SaveResult ur = Database.update(issueToUpdate);
+		if (ur.isSuccess()) {
+			Logger.info('Issue ' + ur.id + ' updated successfully');
+			Logger.saveLog();
+		} else {
+			for (Database.Error error : ur.getErrors()) {
+				String errorMessage = 'There was an error updating the following issue: ' + ur.id;
+				errorMessage += 'Status code: ' + error.getStatusCode() + ' message: ' + error.getMessage();
+				Logger.error(errorMessage);
+				Logger.saveLog();
+			}
+		}
 	}
 }
